@@ -1,0 +1,36 @@
+/* App.css */
+
+.container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .side-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  .button {
+    width: 100%;
+  }
+  
+  .content {
+    margin-left: 250px; /* Add margin to the content to account for the side panel width */
+    padding: 1rem;
+    flex: 1;
+  }
+  
+  .card {
+    max-width: 18rem;
+  }
+  
