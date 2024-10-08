@@ -3,7 +3,7 @@ import { Button, Modal, ModalBody, ModalFooter, ModalHeader, ModalTitle } from "
 import { createFolder, getParentFolders } from "./Services/Folder.service";
 import { isEmpty } from "./Helper";
 import queryString from "query-string";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, Link } from "react-router-dom";
 import "./App.css";
 
 const Viewer = () => {
@@ -32,7 +32,10 @@ const Viewer = () => {
   useEffect(() => {
     parent_folders();
   }, []);
-  console.log(parentFolders)
+
+  const modalData = async (data) => {
+    setParentFolders([...parentFolders, data]);
+  };
 
   return (
     <div className="container">
@@ -47,27 +50,36 @@ const Viewer = () => {
 
       {/* Main content area */}
       <div className="content">
-        {parentFolders?.map((folder)=>(
-          <div className="card" key={folder.id}>
-          <div className="card-body">
-            <h5 className="card-title">{folder?.name}</h5>
-            <p className="card-text"></p>
-            <a href="#" className="card-link">
-              Card link
-            </a>
-          </div>
+        <div className="row">
+          {parentFolders?.map((folder) => (
+            <div className="col-md-4" key={folder.id}>
+              <div className="card">
+                <div className="card-body">
+                  <h5 className="card-title">{folder?.name}</h5>
+                  {/* <p className="card-text">Card content</p> */}
+                  <Link to={`/dashboard/${folder.id}`} className="dfltlink col-span-2">
+                    {"Open Folder"}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        ))}
-        <MyModal show={show} handleClose={handleClose} parentFolders={parentFolders} />
       </div>
+      <MyModal show={show} handleClose={handleClose} parentFolders={parentFolders} callbackFunction={modalData} />
     </div>
   );
 };
 
-const MyModal = ({ show, handleClose, parentFolders }) => {
+const MyModal = ({ show, handleClose, parentFolders, callbackFunction }) => {
   const { search } = useLocation();
   const query = queryString.parse(search);
   const [folderName, setFolderName] = useState(""); // State to store the input value
+
+  const onCloseModal = () => {
+    setFolderName("");
+    handleClose();
+  };
 
   console.log("query", query);
   const handleSubmit = async () => {
@@ -78,7 +90,10 @@ const MyModal = ({ show, handleClose, parentFolders }) => {
         parentFolderId: null,
       };
       const data = await createFolder({ payload });
+      console.log("data", data);
+      callbackFunction(data);
       alert("Folder created successfully");
+      onCloseModal();
     } catch (error) {
       alert("Something went wrong.Try again.");
     }
@@ -94,7 +109,7 @@ const MyModal = ({ show, handleClose, parentFolders }) => {
           <input type="text" className="" name={folderName} value={folderName} onChange={(ev) => setFolderName(ev.target.value)} />
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="secondary" onClick={onCloseModal}>
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit}>
