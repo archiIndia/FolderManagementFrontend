@@ -9,7 +9,6 @@ const createFolder = async ({ payload }) => {
       },
       body: JSON.stringify(payload),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
@@ -24,17 +23,18 @@ const createFolder = async ({ payload }) => {
 
 const getParentFolders = async (folder_id) => {
   try {
-    const response= await fetch(`${base_URL}/parent/${folder_id}`, { method: "GET" })
+    const response= await fetch(`${base_URL}/parent/${folder_id}`, { method: "GET" });
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
     }
-
     const data = await response.json();
     return data;
   } catch (error) {
     throw new Error("Parent Folder does not exist");
   }
 };
+
+
 
 export { createFolder, getParentFolders };

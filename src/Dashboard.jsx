@@ -14,10 +14,13 @@ const Viewer = () => {
   // Functions to control modal visibility
   const handleClose = () => setShow(false);
   const handleOpen = () => setShow(true);
+  const formElement = document.querySelector('form');
+const formData = new FormData(formElement);
+
 
   const parent_folders = async () => {
     try {
-      console.log(id)
+      console.log(id);
       const data = await getParentFolders(id);
       if (isEmpty(data)) {
         throw new Error("No Parent Folder exist");
@@ -31,7 +34,7 @@ const Viewer = () => {
 
   useEffect(() => {
     parent_folders();
-  }, []);
+  }, [id]);
 
   const modalData = async (data) => {
     setParentFolders([...parentFolders, data]);
@@ -46,24 +49,32 @@ const Viewer = () => {
             NEW
           </Button>
         </i>
+        <div>
+          <title>File Upload</title>
+          <h1>Upload a File</h1>
+          {/* <form action="/uploads" method="Post" encType="multipart/form-data"> */}
+        <input type="file" name='avatar' id="file"/>
+        <input type="submit" value={"Upload Image"}/>
+        </div>
       </div>
 
       {/* Main content area */}
       <div className="content">
         <div className="row">
-          {parentFolders?.map((folder) => (
-            <div className="col-md-4" key={folder.id}>
-              <div className="card">
-                <div className="card-body">
-                  <h5 className="card-title">{folder?.name}</h5>
-                  {/* <p className="card-text">Card content</p> */}
-                  <Link to={`/dashboard/${folder.id}`} className="dfltlink col-span-2">
-                    {"Open Folder"}
-                  </Link>
+          {parentFolders?.length > 0 &&
+            parentFolders?.map((folder) => (
+              <div className="col-md-4" key={folder.id}>
+                <div className="card">
+                  <div className="card-body">
+                    <h5 className="card-title">{folder?.name}</h5>
+                    {/* <p className="card-text">Card content</p> */}
+                    <Link to={`/dashboard/${folder.id}`} className="dfltlink col-span-2">
+                      {"Open Folder"}
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
       <MyModal show={show} handleClose={handleClose} parentFolders={parentFolders} callbackFunction={modalData} />
@@ -71,7 +82,7 @@ const Viewer = () => {
   );
 };
 
-const MyModal = ({ show, handleClose, parentFolders, callbackFunction }) => {
+const MyModal = ({ show, handleClose, callbackFunction }) => {
   const { search } = useLocation();
   const query = queryString.parse(search);
   const [folderName, setFolderName] = useState(""); // State to store the input value
@@ -81,7 +92,7 @@ const MyModal = ({ show, handleClose, parentFolders, callbackFunction }) => {
     handleClose();
   };
 
-  console.log("query", query);
+  // console.log("query", query);
   const handleSubmit = async () => {
     try {
       const payload = {
