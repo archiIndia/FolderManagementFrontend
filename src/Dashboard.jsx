@@ -14,9 +14,6 @@ const Viewer = () => {
   // Functions to control modal visibility
   const handleClose = () => setShow(false);
   const handleOpen = () => setShow(true);
-  const formElement = document.querySelector('form');
-const formData = new FormData(formElement);
-
 
   const parent_folders = async () => {
     try {
@@ -52,9 +49,8 @@ const formData = new FormData(formElement);
         <div>
           <title>File Upload</title>
           <h1>Upload a File</h1>
-          {/* <form action="/uploads" method="Post" encType="multipart/form-data"> */}
-        <input type="file" name='avatar' id="file"/>
-        <input type="submit" value={"Upload Image"}/>
+          <input type="file" name="avatar" id="file" />
+          <input type="submit" value={"Upload Image"} />
         </div>
       </div>
 
