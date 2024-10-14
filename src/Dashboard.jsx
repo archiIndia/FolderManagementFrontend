@@ -5,6 +5,7 @@ import { isEmpty } from "./Helper";
 import queryString from "query-string";
 import { useLocation, useParams, Link } from "react-router-dom";
 import "./App.css";
+import { fileUpload } from "./Services/File.service";
 
 const Viewer = () => {
   const { id } = useParams();
@@ -49,8 +50,7 @@ const Viewer = () => {
         <div>
           <title>File Upload</title>
           <h1>Upload a File</h1>
-          <input type="file" name="avatar" id="file" />
-          <input type="submit" value={"Upload Image"} />
+            <input type="file" name="avatar" id="file" onChange={(ev)=> fileUpload(ev.target.files)} />
         </div>
       </div>
 
@@ -63,7 +63,7 @@ const Viewer = () => {
                 <div className="card">
                   <div className="card-body">
                     <h5 className="card-title">{folder?.name}</h5>
-                    {/* <p className="card-text">Card content</p> */}
+                    {/* Link with the onClick event to call uploadFiles */}
                     <Link to={`/dashboard/${folder.id}`} className="dfltlink col-span-2">
                       {"Open Folder"}
                     </Link>
@@ -97,7 +97,6 @@ const MyModal = ({ show, handleClose, callbackFunction }) => {
         parentFolderId: null,
       };
       const data = await createFolder({ payload });
-      console.log("data", data);
       callbackFunction(data);
       alert("Folder created successfully");
       onCloseModal();
