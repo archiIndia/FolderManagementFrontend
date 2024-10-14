@@ -34,6 +34,24 @@ const Viewer = () => {
     parent_folders();
   }, [id]);
 
+  const handleFileUpload= (files)=>{
+    if (files.length === 0) {
+      alert("Please select a file!");
+      return;
+    }
+    const formData = new FormData();
+    // Append files to FormData
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
+      }
+    }
+    // Append JSON data as a string
+    // if (payload && Object.keys(payload).length > 0) {
+    //   formData.append('json_string', JSON.stringify({ ...payload }));
+    // }
+  };
+
   const modalData = async (data) => {
     setParentFolders([...parentFolders, data]);
   };
@@ -50,7 +68,7 @@ const Viewer = () => {
         <div>
           <title>File Upload</title>
           <h1>Upload a File</h1>
-            <input type="file" name="avatar" id="file" onChange={(ev)=> fileUpload(ev.target.files)} />
+            <input type="file" name="avatar" id="file" onChange={(ev)=> handleFileUpload(ev.target.files)} />
         </div>
       </div>
 
