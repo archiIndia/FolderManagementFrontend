@@ -34,7 +34,7 @@ const Viewer = () => {
     parent_folders();
   }, [id]);
 
-  const handleFileUpload= (files)=>{
+  const handleFileUpload = async (files) => {
     if (files.length === 0) {
       alert("Please select a file!");
       return;
@@ -43,13 +43,21 @@ const Viewer = () => {
     // Append files to FormData
     if (files) {
       for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i]);
+        formData.append("my_file", files[i]);
       }
     }
     // Append JSON data as a string
     // if (payload && Object.keys(payload).length > 0) {
     //   formData.append('json_string', JSON.stringify({ ...payload }));
     // }
+    for (const pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
+    }
+
+    const response = await fileUpload(formData);
+    if (response?.message) {
+      alert("File upload sucessful");
+    }
   };
 
   const modalData = async (data) => {
@@ -68,7 +76,7 @@ const Viewer = () => {
         <div>
           <title>File Upload</title>
           <h1>Upload a File</h1>
-            <input type="file" name="avatar" id="file" onChange={(ev)=> handleFileUpload(ev.target.files)} />
+          <input type="file" name="sampleFile" id="file" onChange={(ev) => handleFileUpload(ev.target.files)} />
         </div>
       </div>
 
