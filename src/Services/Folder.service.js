@@ -1,8 +1,8 @@
-const base_URL = "http://localhost:5000/folders";
+const base_URL = "http://localhost:5000/folders/";
 
 const createFolder = async ({ payload }) => {
   try {
-    const response = await fetch(`${base_URL}/`, {
+    const response = await fetch(base_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -21,20 +21,28 @@ const createFolder = async ({ payload }) => {
   }
 };
 
-const getParentFolders = async (folder_id) => {
+const getFoldersWithFiles = async (folder_id) => {
   try {
-    const response= await fetch(`${base_URL}/parent/${folder_id}`, { method: "GET" });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
+    if (folder_id === "root") {
+      const response = await fetch(`${base_URL}${folder_id}`, { method: "GET" });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } else {
+      const response = await fetch(`${base_URL}${folder_id}`, { method: "GET" });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
+      }
+      const data = await response.json();
+      return data;
     }
-    const data = await response.json();
-    return data;
   } catch (error) {
-    throw new Error("Parent Folder does not exist");
+    throw new Error("Parent Folder does not exist.");
   }
 };
 
-
-
-export { createFolder, getParentFolders };
+export { createFolder, getFoldersWithFiles };

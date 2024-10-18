@@ -1,37 +1,44 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, ModalTitle } from "react-bootstrap";
-import { createFolder, getParentFolders } from "./Services/Folder.service";
-import { isEmpty } from "./Helper";
+import { createFolder, getFoldersWithFiles } from "./Services/Folder.service";
 import queryString from "query-string";
 import { useLocation, useParams, Link } from "react-router-dom";
 import "./App.css";
-import { fileUpload } from "./Services/File.service";
+import { fileUpload, getFileById } from "./Services/File.service";
 
 const Viewer = () => {
   const { id } = useParams();
-  const [parentFolders, setParentFolders] = useState([]);
   const [show, setShow] = useState(false);
+  const [folders, setFolders] = useState([]);
+  const [files, setFiles] = useState([]);
 
   // Functions to control modal visibility
   const handleClose = () => setShow(false);
   const handleOpen = () => setShow(true);
 
-  const parent_folders = async () => {
+  const foldersWithFiles = async () => {
     try {
-      console.log(id);
-      const data = await getParentFolders(id);
-      if (isEmpty(data)) {
-        throw new Error("No Parent Folder exist");
-      }
-      console.log(data);
-      setParentFolders(data);
+      // console.log(id);
+      const data = await getFoldersWithFiles(id);
+      console.log("data", data);
+      setFolders(data?.folders);
+      setFiles(data?.files);
     } catch (error) {
       console.log("Error", error.message);
     }
   };
 
+  // const parent_files = async () => {
+  //   try {
+  //     const data = await getFileById(id);
+  //     setParentFiles(data);
+  //   } catch (error) {
+  //     console.log("Error", error.message);
+  //   }
+  // };
+
   useEffect(() => {
-    parent_folders();
+    foldersWithFiles();
   }, [id]);
 
   const handleFileUpload = async (files) => {
@@ -40,16 +47,17 @@ const Viewer = () => {
       return;
     }
     const formData = new FormData();
+
     // Append files to FormData
     if (files) {
       for (let i = 0; i < files.length; i++) {
         formData.append("my_file", files[i]);
       }
     }
-    // Append JSON data as a string
-    // if (payload && Object.keys(payload).length > 0) {
-    //   formData.append('json_string', JSON.stringify({ ...payload }));
-    // }
+    // let folder_id = id;
+    if (id !== "root") {
+      formData.append("folderId", id);
+    }
     for (const pair of formData.entries()) {
       console.log(pair[0] + ": " + pair[1]);
     }
@@ -61,7 +69,16 @@ const Viewer = () => {
   };
 
   const modalData = async (data) => {
-    setParentFolders([...parentFolders, data]);
+    setFolders([...folders, data]);
+  };
+
+  const fileSizeConversion = (size) => {
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+       size/= 1024; unitIndex++;
+    }
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
   };
 
   return (
@@ -70,11 +87,11 @@ const Viewer = () => {
       <div className="side-panel">
         <i className="bi bi-file-plus">
           <Button variant="primary" onClick={handleOpen} className="bi bi-file-earmark-plus">
-            NEW
+            New Folder
           </Button>
         </i>
         <div>
-          <title>File Upload</title>
+          {/* <title>File Upload</title> */}
           <h1>Upload a File</h1>
           <input type="file" name="sampleFile" id="file" onChange={(ev) => handleFileUpload(ev.target.files)} />
         </div>
@@ -83,8 +100,8 @@ const Viewer = () => {
       {/* Main content area */}
       <div className="content">
         <div className="row">
-          {parentFolders?.length > 0 &&
-            parentFolders?.map((folder) => (
+          {folders?.length > 0 &&
+            folders?.map((folder) => (
               <div className="col-md-4" key={folder.id}>
                 <div className="card">
                   <div className="card-body">
@@ -97,14 +114,25 @@ const Viewer = () => {
                 </div>
               </div>
             ))}
+          {files?.length > 0 &&
+            files?.map((file) => (
+              <div className="col-md-4" key={file.id}>
+                <div className="card">
+                  <div className="card-body">
+                    <h5 className="card-title">{file?.filename}</h5>
+                    <h5 className="card-title">{fileSizeConversion(file?.filesize)}</h5>
+                  </div>
+                </div>
+              </div>
+            ))}
         </div>
       </div>
-      <MyModal show={show} handleClose={handleClose} parentFolders={parentFolders} callbackFunction={modalData} />
+      <MyModal show={show} handleClose={handleClose} parentFolders={folders} callbackFunction={modalData} folder_id={id} />
     </div>
   );
 };
 
-const MyModal = ({ show, handleClose, callbackFunction }) => {
+const MyModal = ({ show, handleClose, callbackFunction, folder_id }) => {
   const { search } = useLocation();
   const query = queryString.parse(search);
   const [folderName, setFolderName] = useState(""); // State to store the input value
@@ -114,13 +142,19 @@ const MyModal = ({ show, handleClose, callbackFunction }) => {
     handleClose();
   };
 
-  // console.log("query", query);
   const handleSubmit = async () => {
     try {
+      let parentId;
+      if (folder_id === "root") {
+        parentId = null;
+      } else {
+        parentId = folder_id;
+      }
+      console.log(parentId);
       const payload = {
         name: folderName,
         userId: 1,
-        parentFolderId: null,
+        parentFolderId: parentId,
       };
       const data = await createFolder({ payload });
       callbackFunction(data);
