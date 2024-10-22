@@ -6,6 +6,7 @@ const createFolder = async ({ payload }) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("Token")}`,
       },
       body: JSON.stringify(payload),
     });
@@ -24,7 +25,13 @@ const createFolder = async ({ payload }) => {
 const getFoldersWithFiles = async (folder_id) => {
   try {
     if (folder_id === "root") {
-      const response = await fetch(`${base_URL}${folder_id}`, { method: "GET" });
+      const response = await fetch(`${base_URL}${folder_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("Token")}`,
+        },
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
@@ -32,7 +39,13 @@ const getFoldersWithFiles = async (folder_id) => {
       const data = await response.json();
       return data;
     } else {
-      const response = await fetch(`${base_URL}${folder_id}`, { method: "GET" });
+      const response = await fetch(`${base_URL}${folder_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("Token")}`,
+        },
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
@@ -45,4 +58,24 @@ const getFoldersWithFiles = async (folder_id) => {
   }
 };
 
-export { createFolder, getFoldersWithFiles };
+const getTreeFolders = async () => {
+  try {
+    const response = await fetch(base_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error("No root folders exist.");
+  }
+};
+
+export { createFolder, getFoldersWithFiles, getTreeFolders };

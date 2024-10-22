@@ -5,6 +5,10 @@ const fileUpload = async (formData) => {
   try {
     const response = await fetch(base_URL, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      },
       body: formData,
     });
     if (!response.ok) {
@@ -18,14 +22,21 @@ const fileUpload = async (formData) => {
 
 const getFileById = async (id) => {
   try {
-    const response = await fetch(`${base_URL}${id}`, { method: "GET" });
+    const response = await fetch(`${base_URL}${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      },
+    });
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
     }
-    const data = await response.json();
-    return data;
+    console.log("res", response);
+    return response;
   } catch (error) {
+    console.log(error);
     throw new Error("Parent Folder does not exist");
   }
 };

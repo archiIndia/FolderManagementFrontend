@@ -41,4 +41,12 @@ const login = async (payload) => {
   }
 };
 
+// const api = axios.create({
+//   baseURL: 'http://localhost:4000', // Replace with your backend URL
+//   headers: {
+//     Authorization: `Bearer ${localStorage.getItem('Token')}`,
+//   },
+// });
+
+
 export { login, signUp };

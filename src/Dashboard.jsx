@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, ModalTitle } from "react-bootstrap";
-import { createFolder, getFoldersWithFiles } from "./Services/Folder.service";
-import queryString from "query-string";
+import { createFolder, getFoldersWithFiles, getTreeFolders } from "./Services/Folder.service";
 import { useLocation, useParams, Link } from "react-router-dom";
 import "./App.css";
+import queryString from "query-string";
+import Accordion from 'react-bootstrap/Accordion';
 import { fileUpload, getFileById } from "./Services/File.service";
 
 const Viewer = () => {
   const { id } = useParams();
   const [show, setShow] = useState(false);
   const [folders, setFolders] = useState([]);
-  const [files, setFiles] = useState([]);
+  const [foldersMenu, setFoldersMenu]= useState([]);
+  const [files, setFiles] = useState([]); 
 
   // Functions to control modal visibility
   const handleClose = () => setShow(false);
@@ -28,18 +30,17 @@ const Viewer = () => {
     }
   };
 
-  // const parent_files = async () => {
-  //   try {
-  //     const data = await getFileById(id);
-  //     setParentFiles(data);
-  //   } catch (error) {
-  //     console.log("Error", error.message);
-  //   }
-  // };
-
-  useEffect(() => {
+useEffect(() => {
     foldersWithFiles();
   }, [id]);
+
+useEffect(()=>{
+  const foldersMenu= async()=>{
+    const tree_folders= await getTreeFolders();
+     setFoldersMenu(tree_folders);
+  };
+  foldersMenu();
+},[]);
 
   const handleFileUpload = async (files) => {
     if (files.length === 0) {
@@ -54,17 +55,22 @@ const Viewer = () => {
         formData.append("my_file", files[i]);
       }
     }
-    // let folder_id = id;
     if (id !== "root") {
       formData.append("folderId", id);
     }
     for (const pair of formData.entries()) {
       console.log(pair[0] + ": " + pair[1]);
     }
-
-    const response = await fileUpload(formData);
-    if (response?.message) {
-      alert("File upload sucessful");
+    try {
+      const response = await fileUpload(formData);
+      if (response?.message) {
+        alert("File upload successful");
+      } else {
+        alert("File upload failed!");
+      }
+    } catch (error) {
+      console.error("Error uploading files: ", error.message);
+      alert("An error occurred during file upload.");
     }
   };
 
@@ -81,8 +87,29 @@ const Viewer = () => {
     return `${size.toFixed(2)} ${units[unitIndex]}`;
   };
 
+  // Recursive FolderAccordion Component
+const FolderAccordion = ({folders}) => {
+  return (
+    <Accordion>
+      {folders?.map((folder, index) => (
+        <Accordion.Item eventKey={index.toString()} key={folder.id}>
+          <Accordion.Header>{folder.name}</Accordion.Header>
+          <Accordion.Body>
+            {folder.children?.length > 0 ? (
+              <FolderAccordion folders={folder.children} />
+            ) : (
+              <p>No sub-folders</p>
+            )}
+          </Accordion.Body>
+        </Accordion.Item>
+      ))}
+    </Accordion>
+  );
+};
+
   return (
     <div className="container">
+      
       {/* Side panel */}
       <div className="side-panel">
         <i className="bi bi-file-plus">
@@ -94,6 +121,12 @@ const Viewer = () => {
           {/* <title>File Upload</title> */}
           <h1>Upload a File</h1>
           <input type="file" name="sampleFile" id="file" onChange={(ev) => handleFileUpload(ev.target.files)} />
+        </div>
+
+       {/* Display Folders in the Side Panel */}
+       <div className="folder-tree">
+          <h2>Folder List</h2>
+       <FolderAccordion folders={foldersMenu} />
         </div>
       </div>
 
@@ -121,6 +154,8 @@ const Viewer = () => {
                   <div className="card-body">
                     <h5 className="card-title">{file?.filename}</h5>
                     <h5 className="card-title">{fileSizeConversion(file?.filesize)}</h5>
+                    {/* Download Button */}
+                    <Button className="btn" onClick={getFileById(file.id)} >Download File</Button>
                   </div>
                 </div>
               </div>
