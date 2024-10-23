@@ -2,7 +2,7 @@ import { login } from "./Services/User.service.js";
 import * as Joi from "joi";
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 
 const schema = Joi.object({
@@ -21,6 +21,7 @@ const schema = Joi.object({
 
 const SignIn = () => {
   const navigate = useNavigate();
+
   const {
     register,
     formState: { errors },
@@ -39,7 +40,7 @@ const SignIn = () => {
       console.log(newLogin);
       // alert(newLogin.message);
       localStorage.setItem("Token", newLogin.token);
-      navigate("/dashboard");
+      navigate("/dashboard/root");
     } catch (error) {
       console.log("Error", error);
       alert("LogIn Failed.Email Id or Password does not Match...");
@@ -87,7 +88,7 @@ const SignIn = () => {
 
             {/* Submit Button */}
             <Form.Group as={Row} className="mb-3">
-              <Col sm={{ span: 9, offset: 3 }}>
+              <Col sm={{ span: 10, offset: 0 }}>
                 <div className="d-flex justify-content-between">
                   <Button type="submit" variant="primary" className="me-2" size="lg">
                     Log In

@@ -6,7 +6,7 @@ const fileUpload = async (formData) => {
     const response = await fetch(base_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        // "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${localStorage.getItem("Token")}`,
       },
       body: formData,
@@ -25,7 +25,6 @@ const getFileById = async (id) => {
     const response = await fetch(`${base_URL}${id}`, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("Token")}`,
       },
     });
@@ -33,7 +32,6 @@ const getFileById = async (id) => {
       const errorData = await response.json();
       throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
     }
-    console.log("res", response);
     return response;
   } catch (error) {
     console.log(error);

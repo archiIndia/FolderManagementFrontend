@@ -4,15 +4,15 @@ import { createFolder, getFoldersWithFiles, getTreeFolders } from "./Services/Fo
 import { useLocation, useParams, Link } from "react-router-dom";
 import "./App.css";
 import queryString from "query-string";
-import Accordion from 'react-bootstrap/Accordion';
+import Accordion from "react-bootstrap/Accordion";
 import { fileUpload, getFileById } from "./Services/File.service";
 
 const Viewer = () => {
   const { id } = useParams();
   const [show, setShow] = useState(false);
   const [folders, setFolders] = useState([]);
-  const [foldersMenu, setFoldersMenu]= useState([]);
-  const [files, setFiles] = useState([]); 
+  const [foldersMenu, setFoldersMenu] = useState([]);
+  const [files, setFiles] = useState([]);
 
   // Functions to control modal visibility
   const handleClose = () => setShow(false);
@@ -20,9 +20,8 @@ const Viewer = () => {
 
   const foldersWithFiles = async () => {
     try {
-      // console.log(id);
       const data = await getFoldersWithFiles(id);
-      console.log("data", data);
+      // console.log("data", data);
       setFolders(data?.folders);
       setFiles(data?.files);
     } catch (error) {
@@ -30,17 +29,17 @@ const Viewer = () => {
     }
   };
 
-useEffect(() => {
+  useEffect(() => {
     foldersWithFiles();
   }, [id]);
 
-useEffect(()=>{
-  const foldersMenu= async()=>{
-    const tree_folders= await getTreeFolders();
-     setFoldersMenu(tree_folders);
-  };
-  foldersMenu();
-},[]);
+  useEffect(() => {
+    const foldersMenu = async () => {
+      const tree_folders = await getTreeFolders();
+      setFoldersMenu(tree_folders);
+    };
+    foldersMenu();
+  }, []);
 
   const handleFileUpload = async (files) => {
     if (files.length === 0) {
@@ -68,6 +67,8 @@ useEffect(()=>{
       } else {
         alert("File upload failed!");
       }
+      console.log('response',response);
+      setFiles([...files,response.file]);
     } catch (error) {
       console.error("Error uploading files: ", error.message);
       alert("An error occurred during file upload.");
@@ -82,34 +83,28 @@ useEffect(()=>{
     const units = ["B", "KB", "MB", "GB", "TB"];
     let unitIndex = 0;
     while (size >= 1024 && unitIndex < units.length - 1) {
-       size/= 1024; unitIndex++;
+      size /= 1024;
+      unitIndex++;
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`;
   };
 
   // Recursive FolderAccordion Component
-const FolderAccordion = ({folders}) => {
-  return (
-    <Accordion>
-      {folders?.map((folder, index) => (
-        <Accordion.Item eventKey={index.toString()} key={folder.id}>
-          <Accordion.Header>{folder.name}</Accordion.Header>
-          <Accordion.Body>
-            {folder.children?.length > 0 ? (
-              <FolderAccordion folders={folder.children} />
-            ) : (
-              <p>No sub-folders</p>
-            )}
-          </Accordion.Body>
-        </Accordion.Item>
-      ))}
-    </Accordion>
-  );
-};
+  const FolderAccordion = ({ folders }) => {
+    return (
+      <Accordion>
+        {folders?.map((folder, index) => (
+          <Accordion.Item eventKey={index.toString()} key={folder.id}>
+            <Accordion.Header>{folder.name}</Accordion.Header>
+            <Accordion.Body>{folder.children?.length > 0 ? <FolderAccordion folders={folder.children} /> : <p>No sub-folders</p>}</Accordion.Body>
+          </Accordion.Item>
+        ))}
+      </Accordion>
+    );
+  };
 
   return (
     <div className="container">
-      
       {/* Side panel */}
       <div className="side-panel">
         <i className="bi bi-file-plus">
@@ -123,43 +118,53 @@ const FolderAccordion = ({folders}) => {
           <input type="file" name="sampleFile" id="file" onChange={(ev) => handleFileUpload(ev.target.files)} />
         </div>
 
-       {/* Display Folders in the Side Panel */}
-       <div className="folder-tree">
+        {/* Display Folders in the Side Panel */}
+        <div className="folder-tree">
           <h2>Folder List</h2>
-       <FolderAccordion folders={foldersMenu} />
+          <FolderAccordion folders={foldersMenu} />
         </div>
       </div>
 
       {/* Main content area */}
       <div className="content">
         <div className="row">
-          {folders?.length > 0 &&
-            folders?.map((folder) => (
-              <div className="col-md-4" key={folder.id}>
-                <div className="card">
-                  <div className="card-body">
-                    <h5 className="card-title">{folder?.name}</h5>
-                    {/* Link with the onClick event to call uploadFiles */}
-                    <Link to={`/dashboard/${folder.id}`} className="dfltlink col-span-2">
-                      {"Open Folder"}
-                    </Link>
+          {folders?.length > 0 || files?.length > 0 ? (
+            <>
+              {folders?.length > 0 &&
+                folders.map((folder) => (
+                  <div className="col-md-4" key={folder.id}>
+                    <div className="card">
+                      <div className="card-body">
+                        <h5 className="card-title">{folder?.name}</h5>
+                        <Link to={`/dashboard/${folder.id}`} className="dfltlink col-span-2">
+                          {"Open Folder"}
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          {files?.length > 0 &&
-            files?.map((file) => (
-              <div className="col-md-4" key={file.id}>
-                <div className="card">
-                  <div className="card-body">
-                    <h5 className="card-title">{file?.filename}</h5>
-                    <h5 className="card-title">{fileSizeConversion(file?.filesize)}</h5>
-                    {/* Download Button */}
-                    <Button className="btn" onClick={getFileById(file.id)} >Download File</Button>
+                ))}
+
+              {files?.length > 0 &&
+                files.map((file) => (
+                  <div className="col-md-4" key={file.id}>
+                    <div className="card">
+                      <div className="card-body">
+                        <h5 className="card-title">{file?.filename}</h5>
+                        <h5 className="card-title">{fileSizeConversion(file?.filesize)}</h5>
+                        <Button className="" onClick={() => getFileById(file.id)}>
+                          Download File
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
+            </>
+          ) : (
+            // Show 'No Content Exist' if both folders and files are empty
+            <div className="col-36">
+              <h5>No Content Exist</h5>
+            </div>
+          )}
         </div>
       </div>
       <MyModal show={show} handleClose={handleClose} parentFolders={folders} callbackFunction={modalData} folder_id={id} />
@@ -185,11 +190,9 @@ const MyModal = ({ show, handleClose, callbackFunction, folder_id }) => {
       } else {
         parentId = folder_id;
       }
-      console.log(parentId);
       const payload = {
         name: folderName,
-        userId: 1,
-        parentFolderId: parentId,
+        parentId: parentId,
       };
       const data = await createFolder({ payload });
       callbackFunction(data);
