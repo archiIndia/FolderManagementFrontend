@@ -30,7 +30,9 @@ const getFileById = async (id) => {
     });
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
+      throw new Error(
+        `Failed to create folder: ${errorData.message || response.status}`
+      );
     }
     return response;
   } catch (error) {
@@ -39,4 +41,4 @@ const getFileById = async (id) => {
   }
 };
 
-export { fileUpload, getFileById };
+export { fileUpload, getFileById, base_URL };
