@@ -1,7 +1,6 @@
 const base_URL = "http://localhost:5000/files/";
 
 const fileUpload = async (formData) => {
-  console.log("fD", formData);
   try {
     const response = await fetch(base_URL, {
       method: "POST",
@@ -16,7 +15,7 @@ const fileUpload = async (formData) => {
     }
     return await response.json();
   } catch (error) {
-    throw new Error("Can not post data.");
+    throw new Error("Can not Upload a File.");
   }
 };
 
@@ -31,13 +30,13 @@ const getFileById = async (id) => {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to create folder: ${errorData.message || response.status}`
+        `Failed to create file: ${errorData.message || response.status}`
       );
     }
     return response;
   } catch (error) {
     console.log(error);
-    throw new Error("Parent Folder does not exist");
+    throw new Error("File does not exist");
   }
 };
 
