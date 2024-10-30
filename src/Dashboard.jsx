@@ -1,25 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, ModalTitle } from "react-bootstrap";
-import { createFolder, getFoldersWithFiles, getTreeFolders } from "./Services/Folder.service";
+import { createFolder, getFoldersWithFiles, getTreeFolders, updateFolder } from "./Services/Folder.service";
 import { useLocation, useParams, Link } from "react-router-dom";
 import "./App.css";
 import Accordion from "react-bootstrap/Accordion";
 import { base_URL, fileUpload, getFileById } from "./Services/File.service";
 import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 
 const Viewer = () => {
   const { id } = useParams();
   const [show, setShow] = useState(false);
   const [folders, setFolders] = useState([]);
   const [foldersMenu, setFoldersMenu] = useState([]);
+  const [selectedFolder, setSelectedFolder] = useState(null);
   const [files, setFiles] = useState([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const fileInputRef = useRef(null); // Create a reference for the file input
 
   // Functions to control modal visibility
   const handleClose = () => setShow(false);
-  const handleOpen = () => setShow(true);
+  const handleOpen = () => setShow(true); 
 
   const handleShowLogoutModal = () => setShowLogoutModal(true);
   const handleCloseLogoutModal = () => setShowLogoutModal(false);
@@ -63,12 +64,12 @@ const Viewer = () => {
       formData.append("folderId", id);
     }
     for (const pair of formData.entries()) {
-      console.log(pair[0] + ": " + pair[1]);
+      console.log(pair[0] + ":" + pair[1]);
     }
     try {
       const response = await fileUpload(formData);
       if (response?.message) {
-      toast.success("File uploaded successfully");
+        toast.success("File uploaded successfully");
 
         // Add the uploaded file to the state
         const newFile = {
@@ -86,9 +87,35 @@ const Viewer = () => {
     }
   };
 
-  const modalData = async (data) => {
+  const modalData = async ({data,action}) => {
+    if(action=== 'add'){
     setFolders([...folders, data]);
+    }else{
+      const all_folders= [...folders];
+
+    }
   };
+
+  // const callbackFunctionUpdateData = (data, action) => {
+  //   // console.log("All", data, action);
+  //   if (action === "add") {
+  //     setValue("category", { value: data?.id, label: showLanguageSpecificData(data.name, data.name_sl, PRIME_ORG_ID) });
+  //     setHelpCategories([...helpCategories, data]);
+  //     setHelpMenuItems([...helpMenuItems, { value: data?.id, label: showLanguageSpecificData(data.name, data.name_sl, PRIME_ORG_ID) }]);
+  //     setValue("parent", "");
+  //     setParentContents([]);
+  //   } else if (action === "edit") {
+  //     setValue("category", { value: data?.id, label: showLanguageSpecificData(data.name, data.name_sl, PRIME_ORG_ID) });
+  //     const cloned_categories = [...helpCategories];
+  //     const cloned_help_category = [...helpMenuItems];
+  //     const category_index = cloned_categories?.findIndex((cat) => cat.id === data.id);
+  //     cloned_categories[category_index] = data;
+  //     setHelpCategories([...cloned_categories]);
+  //     const selected_category_index = cloned_help_category?.findIndex((cat) => cat.value === data.id);
+  //     cloned_help_category[selected_category_index] = { value: data?.id, label: showLanguageSpecificData(data.name, data.name_sl, PRIME_ORG_ID) };
+  //     setHelpMenuItems([...cloned_help_category]);
+  //   }
+  // };
 
   const fileSizeConversion = (size) => {
     // console.log("FSize", size);
@@ -107,17 +134,22 @@ const Viewer = () => {
       <Accordion>
         {folders?.map((folder, index) => (
           <Accordion.Item eventKey={index.toString()} key={folder.id}>
-             <Accordion.Header>
-             {/* Generate a link to the folder's specific route */}
-            <Link to={`/dashboard/${folder.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              {folder.name}
-            </Link>
+            <Accordion.Header>
+              {/* Generate a link to the folder's specific route */}
+              <Link to={`/dashboard/${folder.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                {folder.name}
+              </Link>
             </Accordion.Header>
             <Accordion.Body>{folder.children?.length > 0 ? <FolderAccordion folders={folder.children} /> : <p>No sub-folders</p>}</Accordion.Body>
           </Accordion.Item>
         ))}
       </Accordion>
     );
+  };
+
+  const handleEditClick = (folder) => {
+   setSelectedFolder(folder);
+    setShow(true);
   };
 
   const deleteAFile = async (file_id) => {
@@ -145,54 +177,53 @@ const Viewer = () => {
 
   const handleLogout = () => {
     // Remove the token from localStorage
-    localStorage.removeItem('Token');
+    localStorage.removeItem("Token");
 
     window.location.href = "/login"; //Navigate to the login page
   };
 
   return (
     <div className="container position-relative">
-
       {/* Log Out Button at the top right */}
       <div className="logout-button">
-      <Button variant="outline-danger" onClick={handleShowLogoutModal}>
-        Log Out
-      </Button>
+        <Button variant="outline-danger" onClick={handleShowLogoutModal}>
+          Log Out
+        </Button>
 
-      {/* Confirmation Modal */}
-      <Modal show={showLogoutModal} onHide={handleCloseLogoutModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Log Out</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to log out?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseLogoutModal}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={() => {
-              handleLogout();
-              handleCloseLogoutModal();
-            }}
-          >
-            Log Out
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
+        {/* Confirmation Modal */}
+        <Modal show={showLogoutModal} onHide={handleCloseLogoutModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Log Out</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Are you sure you want to log out?</Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseLogoutModal}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                handleLogout();
+                handleCloseLogoutModal();
+              }}
+            >
+              Log Out
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
 
       {/* Side panel */}
       <div className="side-panel">
-        <Button variant="primary" onClick={handleOpen} className="bi bi-file-earmark-plus">
+        <Button variant="primary" onClick={handleOpen} className="bi bi-folder-plus">
           New Folder
         </Button>
         <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} closeOnClick />
         <div>
-          {/* <title>File Upload</title> */}
           <h1>Upload a File</h1>
           <input type="file" name="sampleFile" id="file" ref={fileInputRef} onChange={(ev) => handleFileUpload(ev.target.files)} />
         </div>
+
         {/* Display Folders in the Side Panel */}
         <div className="folder-tree">
           <h2>Folder List</h2>
@@ -211,8 +242,11 @@ const Viewer = () => {
                     <div className="card">
                       <div className="card-body">
                         <h5 className="card-title">{folder?.name}</h5>
-                        <Link to={`/dashboard/${folder.id}`} className="dfltlink col-span-2">
-                          {"Open Folder"}
+                        <button onClick={() => handleEditClick(folder)} className="bi bi-pencil">
+                          Edit
+                        </button>
+                        <Link to={`/dashboard/${folder.id}`} className="bi bi-folder2-open">
+                          {"Open"}
                         </Link>
                       </div>
                     </div>
@@ -225,8 +259,8 @@ const Viewer = () => {
                       <div className="card-body">
                         <h5 className="card-title">{file?.filename}</h5>
                         <h5 className="card-title">{fileSizeConversion(file?.filesize)}</h5>
-                        <Button variant="success" onClick={() => getFileById(file.id)}>
-                          Download File
+                        <Button variant="success" className="bi bi-file-earmark-arrow-down" onClick={() => getFileById(file.id)}>
+                          Download
                         </Button>
                         {/* Delete button with confirmation modal */}
                         <DeleteButton
@@ -239,7 +273,6 @@ const Viewer = () => {
                 ))}
             </>
           ) : (
-            // Show 'No Content Exist' if both folders and files are empty
             <div className="col-36">
               <h5>No Content Exist</h5>
             </div>
@@ -247,38 +280,54 @@ const Viewer = () => {
         </div>
       </div>
 
-      <MyModal show={show} handleClose={handleClose} parentFolders={folders} callbackFunction={modalData} folder_id={id} />
+      <FolderModal show={show} handleClose={handleClose} parentFolders={selectedFolder} callbackFunction={({data,action})=>{modalData(data,action)}} folder_id={id} />
     </div>
   );
 };
 
-const MyModal = ({ show, handleClose, callbackFunction, folder_id }) => {
-  const { search } = useLocation();
+const FolderModal = ({ show, handleClose, callbackFunction, parentFolders, folder_id }) => {
   const [folderName, setFolderName] = useState(""); // State to store the input value
+  const [error, setError] = useState(null); // State to store error message
 
   const onCloseModal = () => {
     setFolderName("");
+    setError(null);
     handleClose();
   };
+  console.log(parentFolders);
+
+  useEffect(() => {
+    if (parentFolders) {
+      setFolderName(parentFolders.name);
+    } else {
+      setFolderName("");
+    }
+  }, [parentFolders]);
 
   const handleSubmit = async () => {
     try {
-      let parentId;
-      if (folder_id === "root") {
-        parentId = null;
-      } else {
-        parentId = folder_id;
-      }
+      const parentId = folder_id === "root" ? null : folder_id;
       const payload = {
         name: folderName,
         parentId: parentId,
       };
-      const data = await createFolder({ payload });
-      callbackFunction(data);
-      toast.success("Folder created successfully");
+
+      let data;
+      if (parentFolders) {
+        // Update
+        data = await updateFolder({ payload, folderId: parentFolders.id });
+        console.log('data',data);
+        callbackFunction({data,action: 'edit'});
+        toast.success("Folder updated successfully");
+      } else {
+        // Create
+        data = await createFolder({ payload });
+        callbackFunction({data,action: 'add'});
+        toast.success("Folder created successfully");
+      }
       onCloseModal();
     } catch (error) {
-      toast.error("Something went wrong.Try again.");
+      setError(`Cannot update folder: ${error.message}`);
     }
   };
 
@@ -286,17 +335,18 @@ const MyModal = ({ show, handleClose, callbackFunction, folder_id }) => {
     <>
       <Modal show={show} onHide={handleClose}>
         <ModalHeader closeButton>
-          <ModalTitle> Folder Name</ModalTitle>
+          <ModalTitle>{parentFolders ? "Edit Folder" : "Create Folder"}</ModalTitle>
         </ModalHeader>
         <ModalBody>
           <input type="text" className="" name={folderName} value={folderName} onChange={(ev) => setFolderName(ev.target.value)} />
+          {error && <p className="text-danger mt-2">{error}</p>}
         </ModalBody>
         <ModalFooter>
           <Button variant="secondary" onClick={onCloseModal}>
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit}>
-            Submit
+            {parentFolders ? "Update" : "Submit"}
           </Button>
         </ModalFooter>
       </Modal>

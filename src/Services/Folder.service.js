@@ -14,7 +14,6 @@ const createFolder = async ({ payload }) => {
       const errorData = await response.json();
       throw new Error(`Failed to create folder: ${errorData.message || response.status}`);
     }
-
     const data = await response.json();
     return data;
   } catch (err) {
@@ -78,4 +77,27 @@ const getTreeFolders = async () => {
   }
 };
 
-export { createFolder, getFoldersWithFiles, getTreeFolders };
+const updateFolder= async({payload, folderId})=>{
+  try{
+    const response = await fetch(`${base_URL}${folderId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      },
+      body: JSON.stringify({payload,folderId}),
+    });
+    console.log('response',response)
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Server error: ${errorData}`);
+    }
+    const data = await response.json();
+    return data;
+  }catch(error){
+    throw new Error(`OM Shanti${error}`);
+  }
+};
+
+export { createFolder, getFoldersWithFiles, getTreeFolders, updateFolder };
